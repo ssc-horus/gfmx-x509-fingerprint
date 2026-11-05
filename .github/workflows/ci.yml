@@ -1,0 +1,122 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        # oldest and newest with security support, exact releases (bump deliberately)
+        python: ["3.11.17", "3.15.0"]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Conformance vectors (no dependencies)
+        run: python3 tests/test_vectors.py
+      - name: Loader and command-line regressions
+        run: python3 tests/test_cli.py
+      - name: Live-host fetch (legacy-only servers, SNI)
+        run: python3 tests/test_host.py
+      - name: Test bench dependencies
+        run: pip install -r testbench/requirements.txt
+      - name: Self-signature check, 34 algorithm and curve cases
+        run: python3 testbench/selfsig_test.py
+      - name: Serial sign and padding
+        run: python3 testbench/serial_test.py
+      - name: Test bench (blueprints + noise)
+        run: bash testbench/run_test.sh "$RUNNER_TEMP/bench" --seed 1 --blueprints 30
+
+  go:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        # go.mod's minimum (1.24, which also sets the GODEBUG defaults) and the current
+        # release, exact versions (bump deliberately)
+        go: ["1.24.13", "1.27.2"]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5.6.0
+        with:
+          go-version: ${{ matrix.go }}
+      - name: gofmt
+        working-directory: go
+        run: test -z "$(gofmt -l .)"
+      - name: vet and test
+        working-directory: go
+        run: go vet ./... && go test ./...
+      - name: Fuzz (short)
+        working-directory: go
+        run: |
+          go test -run '^$' -fuzz FuzzFingerprint -fuzztime 30s ./gfmx
+          go test -run '^$' -fuzz FuzzCertificates -fuzztime 30s ./extract
+      - name: C library
+        working-directory: go
+        run: |
+          go build -buildmode=c-shared -o "$RUNNER_TEMP/libgfmx.so" ./capi
+          cc capi/example/example.c -I"$RUNNER_TEMP" -L"$RUNNER_TEMP" -lgfmx -o "$RUNNER_TEMP/example"
+          LD_LIBRARY_PATH="$RUNNER_TEMP" "$RUNNER_TEMP/example" extract/testdata/ca.der
+
+  crosscheck:
+    runs-on: ubuntu-24.04
+    needs: [python, go]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: "3.15.0"
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5.6.0
+        with:
+          go-version: "1.27.2"
+      - name: Differential test, Python reference vs Go, on fresh mutants
+        run: |
+          (cd go && go build -o "$RUNNER_TEMP/gfmx" ./cmd/gfmx)
+          python3 testbench/mutate.py "$RUNNER_TEMP/mut" 5000 "$GITHUB_RUN_NUMBER"
+          python3 testbench/crosscheck.py "$RUNNER_TEMP/gfmx" "$RUNNER_TEMP/mut"
+
+  connectors:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: "3.15.0"
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5.6.0
+        with:
+          go-version: "1.27.2"
+      - name: tshark
+        run: |
+          echo "wireshark-common wireshark-common/install-setuid boolean false" | sudo debconf-set-selections
+          sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends tshark
+      - name: MISP object library
+        run: pip install pymisp==2.5.34.4 jsonschema==4.26.0
+      - name: Connector contracts (PCAP, Suricata, Zeek log, MISP)
+        run: |
+          (cd go && go build -o "$RUNNER_TEMP/gfmx" ./cmd/gfmx)
+          GFMX_BIN="$RUNNER_TEMP/gfmx" python3 tests/test_connectors.py
+
+  zeek:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - name: Zeek script on the test capture
+        run: |
+          docker run --rm -v "$PWD:/w:ro" -w /tmp zeek/zeek:7.0.10 sh -c \
+            'zeek -C -r /w/connectors/testdata/mtls.pcap /w/connectors/zeek/gfmx.zeek && cat gfmx_der.log' > gfmx_der.log || {
+            echo "::error::zeek did not write gfmx_der.log"; exit 1; }
+          python3 connectors/zeek/zeek_gfmx.py gfmx_der.log | tee gfmx.log
+          # three certificates (server leaf, its CA, client), each with a fingerprint and no error
+          python3 - <<'PY'
+          rows = [l.rstrip("\n").split("\t") for l in open("gfmx.log") if not l.startswith("#")]
+          ok = len(rows) == 3 and all(r[-2] != "-" and r[-1] == "-" for r in rows)
+          if not ok:
+              print("::error::expected 3 fingerprinted certificates, got " + repr(rows)[:2000])
+              raise SystemExit(1)
+          PY

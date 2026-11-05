@@ -1,0 +1,90 @@
+{
+  "name": "gfmx",
+  "meta-category": "network",
+  "description": "GFMX X.509 certificate template fingerprint (KEY:SPAN:MAKER:AUDIENCE:NAMES). Certificates generated from the same tool or template share it even when names, serials, dates and keys change.",
+  "version": 1,
+  "uuid": "6b0f6c2e-6f1e-4a8b-9a43-1d5b3c7e2f90",
+  "required": [
+    "gfmx"
+  ],
+  "attributes": {
+    "gfmx": {
+      "description": "Full GFMX fingerprint, e.g. 2116e00d:dc34f8dc:96d5c677::e52bbfa2",
+      "misp-attribute": "text",
+      "ui-priority": 1,
+      "to_ids": true
+    },
+    "pattern": {
+      "description": "GFMX pattern with wildcarded segments, e.g. a1371c39:*:65fa07e6::6bc11ca7",
+      "misp-attribute": "text",
+      "ui-priority": 1,
+      "multiple": true
+    },
+    "key": {
+      "description": "KEY segment: issuance, key algorithm and size, signature algorithm",
+      "misp-attribute": "text",
+      "ui-priority": 0
+    },
+    "span": {
+      "description": "SPAN segment: validity length and kind",
+      "misp-attribute": "text",
+      "ui-priority": 0
+    },
+    "maker": {
+      "description": "MAKER segment: encoding traces of the generating tool",
+      "misp-attribute": "text",
+      "ui-priority": 0
+    },
+    "audience": {
+      "description": "AUDIENCE segment: EKU, Key Usage, Basic Constraints, policies",
+      "misp-attribute": "text",
+      "ui-priority": 0
+    },
+    "names": {
+      "description": "NAMES segment: issuer and subject attribute types",
+      "misp-attribute": "text",
+      "ui-priority": 0
+    },
+    "raw": {
+      "description": "Pre-hash strings, one per segment, for review and near-match search",
+      "misp-attribute": "text",
+      "ui-priority": 0,
+      "disable_correlation": true
+    },
+    "x509-fingerprint-sha256": {
+      "description": "SHA-256 of a certificate that carries this fingerprint",
+      "misp-attribute": "x509-fingerprint-sha256",
+      "ui-priority": 0,
+      "multiple": true
+    },
+    "tool": {
+      "description": "Tool, builder or framework the template is attributed to (e.g. msfvenom APK signer)",
+      "misp-attribute": "text",
+      "ui-priority": 1
+    },
+    "certificate-count": {
+      "description": "Distinct certificates observed with this fingerprint",
+      "misp-attribute": "counter",
+      "ui-priority": 0,
+      "disable_correlation": true
+    },
+    "first-seen": {
+      "description": "First observation",
+      "misp-attribute": "datetime",
+      "ui-priority": 0,
+      "disable_correlation": true
+    },
+    "last-seen": {
+      "description": "Last observation",
+      "misp-attribute": "datetime",
+      "ui-priority": 0,
+      "disable_correlation": true
+    },
+    "spec-version": {
+      "description": "GFMX specification version used",
+      "misp-attribute": "text",
+      "ui-priority": 0,
+      "disable_correlation": true
+    }
+  }
+}

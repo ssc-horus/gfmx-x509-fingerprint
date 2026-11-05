@@ -1,0 +1,21 @@
+%YAML 1.1
+---
+# Minimal Suricata config fragment: log the leaf certificate and chain (base64 DER)
+# in eve.json so eve_gfmx.py (or any GFMX implementation) can fingerprint them.
+# Merge the tls block into your own eve-log types list.
+default-log-dir: .
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - tls:
+            extended: yes
+            custom: [subject, issuer, serial, fingerprint, sni, version, not_before, not_after, certificate, chain]
+app-layer:
+  protocols:
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443, 14433, 14434

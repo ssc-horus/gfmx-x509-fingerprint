@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gfmx-x509"
+dynamic = ["version"]
+description = "GFMX: X.509 certificate template fingerprint (reference implementation)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "SUL-1.0"
+license-files = ["LICENSE.md"]
+dependencies = []
+keywords = ["x509", "certificate", "fingerprint", "threat-intelligence", "tls", "post-quantum"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+]
+
+[project.urls]
+Source = "https://github.com/ssc-horus/gfmx-x509-fingerprint"
+
+[project.scripts]
+gfmx = "gfmx:main"
+
+[tool.setuptools]
+py-modules = ["gfmx"]
+
+[tool.setuptools.dynamic]
+version = { attr = "gfmx.__version__" }

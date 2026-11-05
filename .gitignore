@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+# test bench output
+run/
+out/
+*.log
+.DS_Store
+
+# Go and C builds
+/gfmx
+go/gfmx-bin
+libgfmx.*
+*.test
+*.so
+*.a
+
+# Python packaging
+build/
+dist/
+*.egg-info/
