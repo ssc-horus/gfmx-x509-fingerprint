@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.0.0: first public release (specification 1-draft.3)
 
 No fingerprint value changes; specification unchanged.
 
 - Licensed under the Sustainable Use License 1.0 (`LICENSE.md`, SPDX `SUL-1.0`); GFMX is patent pending.
 - The public repository is read-only and takes no outside contributions (`CONTRIBUTING.md`).
 - Conformance vector `quirk/name-tail-2wire-gateway.der`: the device's serial number, public key and signature are replaced by neutral bytes of the same length. Its value, pre-hash strings and info are unchanged.
+- README names the authors; pyproject lists the author.
+- Build: setuptools 84.1.0 (was 84.0.0), past GHSA-xmj3-9gf7-h52w. The advisory's code path (installing a third-party wheel as an egg) is not used to build GFMX.
 
 ## 0.9.10: specification 1-draft.3
 

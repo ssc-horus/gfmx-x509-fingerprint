@@ -46,7 +46,7 @@ from calendar import monthrange
 from functools import lru_cache
 from typing import List, Optional, Tuple
 
-__version__ = "0.9.10"
+__version__ = "1.0.0"
 SPEC_VERSION = "1-draft.3"  # the pre-hash definition this implementation follows
 SEGMENTS = ("key", "span", "maker", "audience", "names")
 

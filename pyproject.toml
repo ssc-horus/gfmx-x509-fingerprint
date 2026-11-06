@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools==84.0.0"]
+requires = ["setuptools==84.1.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "SUL-1.0"
 license-files = ["LICENSE.md"]
+authors = [{ name = "Gilad Friedenriech Maizles", email = "gilad.maizles@securityscorecard.io" }]
 dependencies = []
 keywords = ["x509", "certificate", "fingerprint", "threat-intelligence", "tls", "post-quantum"]
 classifiers = [

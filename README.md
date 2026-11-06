@@ -208,9 +208,13 @@ The Go implementation runs at about 9,000 certificates per second per core (`--w
 
 ## Status
 
-Specification 1-draft.3, version 0.9.10. Open items are tracked in [docs/DESIGN.md](docs/DESIGN.md) and [CHANGELOG.md](CHANGELOG.md).
+Specification 1-draft.3, version 1.0.0. Open items are tracked in [docs/DESIGN.md](docs/DESIGN.md) and [CHANGELOG.md](CHANGELOG.md).
 
 Security reports: see [SECURITY.md](SECURITY.md). Running the tests, and why the public repository takes no contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Authors
+
+GFMX was invented and written by [Gilad Friedenriech Maizles](mailto:gilad.maizles@securityscorecard.io) at SecurityScorecard. James Edward John Hudson is a co-inventor and improved GFMX early on: faster DER and OID decoding in the Go implementation, the hostile-input limits of specification 1-draft.2, and a more stable MAKER segment.
 
 ## License
 

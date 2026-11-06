@@ -25,7 +25,7 @@ import (
 
 // Version of this implementation; SpecVersion is the pre-hash definition it follows.
 const (
-	Version     = "0.9.10"
+	Version     = "1.0.0"
 	SpecVersion = "1-draft.3"
 )
 
